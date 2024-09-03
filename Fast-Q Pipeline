@@ -1,1 +1,21 @@
+#!/bin/bash
+#SBATCH --time=01:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=4G   # memory per CPU core
+#SBATCH -J "fqc_T1F_3D" # job name
+#SBATCH --output "fqc_T1F_3D"
+
+#Upload modules
+module load FastQC/0.11.9-Java-11
+
+# change me!
+SAMPLE= (SAMPLE HERE)
+
+#run fastqc
+fastqc -o /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Fastqc_Report \
+-f fastq -t 4 \
+/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Raw_Data/${SAMPLE}_1.fastq.gz \
+/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Raw_Data/${SAMPLE}_2.fastq.gz
+
 
