@@ -1,12 +1,12 @@
 
-
+# This was the orininal code
 #!/bin/bash
 #SBATCH --time=01:00:00   # walltime
 #SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --mem=4G   # memory per CPU core
-#SBATCH -J "fqc_T1F_3D" # job name
-#SBATCH --output "fqc_T1F_3D"
+#SBATCH -J "fqc_SAMPLE" # job name
+#SBATCH --output "fqc_SAMPLE"
 
 #Upload modules
 module load FastQC/0.11.9-Java-11
@@ -21,3 +21,29 @@ fastqc -o /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Fastqc_Report
 /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Raw_Data/${SAMPLE}_2.fastq.gz
 
 
+
+# This is the new code looped!
+#!/bin/bash
+#SBATCH --time=01:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=4G   # memory per CPU core
+#SBATCH -J "fqc_loop" # job name
+#SBATCH --output "fqc_loop"
+
+#Upload modules
+module load FastQC/0.12.1-Java-11
+
+# Define the directory containing gzipped FASTQ files
+input_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Raw_Data"
+
+# Define the output directory for FastQC results
+output_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Looped_FQC"
+
+# Find all .fastq.gz files in the input directory and loop through them
+find "$input_dir" -type f -name "*.fastq.gz" | while IFS= read -r gz_file; do
+  # Debug: Print the file path being processed
+  echo "Processing $gz_file"
+  # Run fastqc on the gzipped file
+  fastqc -o "$output_dir" -f fastq -t 4 "$gz_file"
+done
