@@ -1,1 +1,161 @@
+# The Tool BWA was used to allign the samples to a reference Cassiopea xamachana genome 
 
+# OLD Code for SINGLE Sequence Samples
+
+#!/bin/bash
+#SBATCH --time=48:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=32G   # memory per CPU core
+#SBATCH -J "single_bwa_loop"   # job name
+#SBATCH --output "single_bwa_loop"
+
+#load correct python module
+module load bwa-mem2/2.2.1-Linux64
+module load GCC/11.3.0
+module load SAMtools/1.17
+
+# index the genome
+bwa-mem2 index /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/RefGenome/Casxa1_AssemblyScaffolds_Repeatmasked.fasta
+
+# change me!
+SAMPLE=X
+
+while read -r SAMPLE; do
+        bwa-mem2 mem -M -t 4 -R '@RG\tID:HYJLVBCX2.1\tLB:${SAMPLE}\tPL:ILLUMINA\tPM:HISEQ\tSM:${SAMPLE}' \
+        /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/RefGenome/Casxa1_AssemblyScaffolds_Repeatmasked.fasta \
+        /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Filtered_Reads/${SAMPLE}_filtered.fastq \
+        > /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Bwa_Output/${SAMPLE}_aligned.sam
+done < single_bwa.list
+
+
+# NEW Code for SINGLE Sequence Samples
+
+#!/bin/bash
+#SBATCH --time=48:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=32G   # memory per CPU core
+#SBATCH -J "bwa_single"   # job name
+#SBATCH --output "bwa_single"
+
+#load module
+module load bwa-mem2/2.2.1-Linux64
+module load GCC/11.3.0
+module load SAMtools/1.17
+
+# Define the directory containing filtered FASTQ files
+input_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Looped_Cutadapt"
+
+# Define the output directory for BWA results
+output_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Looped_BWA"
+
+# Define the Reference Genome
+reference_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/RefGenome/Casxa1_AssemblyScaffolds_Repeatmasked.fasta"
+
+# Find all *_Illumina_HiSeq_2500_sequencing_trimmed.fastq files in the input directory and loop through them
+find "$input_dir" -type f -name "*_Illumina_HiSeq_2500_sequencing_trimmed.fastq" | while IFS= read -r trimmed_file; do
+  # Extract the base filename without the .fastq.gz extension
+  base_filename=$(basename "$trimmed_file" _trimmed.fastq)
+
+  # Define the output file for BWA
+  sam_file="$output_dir/${base_filename}_aligned.sam"
+
+  # Debug: Print the file path being processed
+  echo "Processing $trimmed_file"
+  echo "Output will be saved to $sam_file"
+
+  # index the genome
+  bwa-mem2 index "$reference_dir"
+
+  # Run BWA on the trimmed Fastq file
+  bwa-mem2 mem -M -t 4 -R '@RG\tID:HYJLVBCX2.1\tLB:${base_filename}\tPL:ILLUMINA\tPM:HISEQ\tSM:${base_filename}' \
+  "$reference_dir" \
+  "$trimmed_file" \
+  > "$sam_file"
+done
+
+
+##############################################################################################
+
+
+# OLD Code for PAIRED Sequence Samples
+
+#!/bin/bash
+#SBATCH --time=48:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=32G   # memory per CPU core
+#SBATCH -J "paired_bwa_loop"   # job name
+#SBATCH --output "paired_bwa_loop"
+
+#load correct python module
+module load bwa-mem2/2.2.1-Linux64
+module load GCC/11.3.0
+module load SAMtools/1.17
+
+# index the genome
+bwa-mem2 index /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/RefGenome/Casxa1_AssemblyScaffolds_Repeatmasked.fasta
+
+# change me!
+SAMPLE=X
+
+while read -r SAMPLE; do
+        bwa-mem2 mem -M -t 4 -R '@RG\tID:HYJLVBCX2.1\tLB:${SAMPLE}\tPL:ILLUMINA\tPM:HISEQ\tSM:${SAMPLE}' \
+        /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/RefGenome/Casxa1_AssemblyScaffolds_Repeatmasked.fasta \
+        /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Filtered_Reads/${SAMPLE}_filtered_1.fastq \
+        /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Filtered_Reads/${SAMPLE}_filtered_2.fastq \
+        > /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Bwa_Output/${SAMPLE}_aligned.sam
+done < paired_bwa.list
+
+
+
+# NEW Code for PAIRED Sequence Samples
+
+#!/bin/bash
+#SBATCH --time=48:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=32G   # memory per CPU core
+#SBATCH -J "bwa_paired"   # job name
+#SBATCH --output "bwa_paired"
+
+#load module
+module load bwa-mem2/2.2.1-Linux64
+module load GCC/11.3.0
+module load SAMtools/1.17
+
+# Define the directory containing filtered FASTQ files
+input_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Looped_Cutadapt"
+
+# Define the output directory for BWA results
+output_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Looped_BWA"
+
+# Define the Reference Genome
+reference_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/RefGenome/Casxa1_AssemblyScaffolds_Repeatmasked.fasta"
+
+# Find all *_1_trimmed.fastq files in the input directory and loop through them
+find "$input_dir" -type f -name "*_1_trimmed.fastq" | while IFS= read -r trimmed_r1_file; do
+  # Derive the corresponding R2 file by replacing "_R1" with "_R2"
+  trimmed_r2_file="${trimmed_r1_file/_1/_2}"
+
+  # Extract the base filename without the .fastq.gz extension
+  base_filename=$(basename "$trimmed_r1_file" _1_trimmed.fastq)
+
+  # Define the output file for BWA (both sequences will be in the same output file?)
+  sam_file="$output_dir/${base_filename}_aligned.sam"
+
+  # Debug: Print the file path being processed
+  echo "Processing $trimmed_r1_file and $trimmed_r2_file"
+  echo "Output will be saved to $sam_file"
+
+  # index the genome
+  bwa-mem2 index "$reference_dir"
+
+  # Run BWA on the trimmed Fastq file
+  bwa-mem2 mem -M -t 4 -R '@RG\tID:HYJLVBCX2.1\tLB:${base_filename}\tPL:ILLUMINA\tPM:HISEQ\tSM:${base_filename}' \
+  "$reference_dir" \
+  "$trimmed_r1_file" \
+  "$trimmed_r2_file" \
+  > "$sam_file"
+done
