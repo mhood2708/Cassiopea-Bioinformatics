@@ -1,22 +1,84 @@
+#OLD Code for SINGLE Sequence Samples
+
 #!/bin/bash
-
-
-
-
-
 #SBATCH --time=24:00:00   # walltime
 #SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
 #SBATCH --nodes=1   # number of nodes
 #SBATCH --mem=4G   # memory per CPU core
-#SBATCH -J "ca_T1F_3D"   # job name
-#SBATCH --output "ca_T1F_3D"
+#SBATCH -J "ca_X"   # job name
+#SBATCH --output "ca_X"
 
 #Upload Module
 module load GCC/11.2.0
 module load cutadapt/3.5
 
 # Change me!
-SAMPLE= (SAMPLE NAME)
+SAMPLE=X
+
+# run cutadapt v3.5
+cutadapt -a AGATCGGAAGAGC -m 50 -q 15 -j 0 \
+-o /scratch/user/mhood/Cx_Gendiversity/filtered_reads/${SAMPLE}_filtered.fastq \
+/scratch/user/mhood/Cx_Gendiversity/Raw_Data/${SAMPLE}.fastq.gz
+
+
+
+# NEW Code for SINGLE Sequence Samples
+
+#!/bin/bash
+#SBATCH --time=36:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=4G   # memory per CPU core
+#SBATCH -J "ca_loop_single"   # job name
+#SBATCH --output "ca_loop_single"
+
+#Upload Module
+module load GCC/11.2.0
+module load cutadapt/3.5
+
+# Define the directory containing gzipped FASTQ files
+input_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Raw_Data"
+
+# Define the output directory for cutadapt results
+output_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Looped_Cutadapt"
+
+# Find all *.fastq.gz files in the input directory and loop through them
+find "$input_dir" -type f -name "*_HiSeq_2500_sequencing.fastq.gz" | while IFS= read -r gz_file; do
+  # Extract the base filename without the .fastq.gz extension
+  base_filename=$(basename "$gz_file" .fastq.gz)
+
+  # Define the output file for cutadapt
+  trimmed_file="$output_dir/${base_filename}_trimmed.fastq"
+
+  # Debug: Print the file path being processed
+  echo "Processing $gz_file"
+  echo "Output will be saved to $trimmed_file"
+
+  # Run cutadapt on the gzipped file
+  cutadapt -a AGATCGGAAGAGC -m 50 -q 15 -j 0 \
+    -o "$trimmed_file" "$gz_file"
+done
+
+
+###############################################################################
+
+
+# Old Code for PAIRED Sequence Samples
+
+#!/bin/bash
+#SBATCH --time=24:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=4G   # memory per CPU core
+#SBATCH -J "ca_X"   # job name
+#SBATCH --output "ca_X"
+
+#Upload Module
+module load GCC/11.2.0
+module load cutadapt/3.5
+
+# Change me!
+SAMPLE=X
 
 # run cutadapt v3.5
 cutadapt -a AGATCGGAAGAGC -A AGATCGGAAGAGC -m 50 -q 15 -j 0 \
@@ -27,4 +89,43 @@ cutadapt -a AGATCGGAAGAGC -A AGATCGGAAGAGC -m 50 -q 15 -j 0 \
 
 
 
+# NEW Code for PAIRED Sequence Samples
 
+#!/bin/bash
+#SBATCH --time=36:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=4G   # memory per CPU core
+#SBATCH -J "ca_loop_paired"   # job name
+#SBATCH --output "ca_loop_paired"
+
+#Upload Module
+module load GCC/11.2.0
+module load cutadapt/3.5
+
+# Define the directory containing gzipped FASTQ files
+input_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Raw_Data"
+
+# Define the output directory for cutadapt results
+output_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Looped_Cutadapt"
+
+# Find all *.fastq.gz files in the input directory and loop through them
+find "$input_dir" -type f -name "*metatranscriptome_1.fastq.gz" | while IFS= read -r r1_file; do
+  # Derive the corresponding R2 file by replacing "_R1" with "_R2"
+  r2_file="${r1_file/_1/_2}"
+
+  # Extract the base filename without the .fastq.gz extension
+  base_filename=$(basename "$r1_file" _1.fastq.gz)
+
+  # Define the output file for cutadapt
+  trimmed_1_file="$output_dir/${base_filename}_1_trimmed.fastq"
+  trimmed_2_file="$output_dir/${base_filename}_2_trimmed.fastq"
+
+  # Debug: Print the file path being processed
+  echo "Processing $r1_file and $r2_file"
+  echo "Output will be saved to $trimmed_1_file and $trimmed_2_file"
+
+  # Run cutadapt on the gzipped file
+  cutadapt -a AGATCGGAAGAGC -A AGATCGGAAGAGC -m 50 -q 15 -j 0 \
+    -o "$trimmed_1_file" -p "$trimmed_2_file" "$r1_file" "$r2_file"
+done
