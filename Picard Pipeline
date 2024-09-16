@@ -1,1 +1,169 @@
+# OLD Picard Code
+
+#!/bin/bash
+#SBATCH --time=10:00:00   # walltime
+#SBATCH --ntasks=2   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=16G   # memory per CPU core
+#SBATCH -J "pic_X"   # job name
+#SBATCH --output "pic_X"
+
+#load modules
+module load picard/2.25.1-Java-11
+
+# change me!
+SAMPLE=X
+
+# add read group and sort the file
+java -Xmx16g \
+-jar $EBROOTPICARD/picard.jar AddOrReplaceReadGroups \
+I=/scratch/user/mhood/Cx_Gendiversity/Star_Output/${SAMPLE}Aligned.out.sam \
+O=/scratch/user/mhood/Cx_Gendiversity/Picard_Output/${SAMPLE}_rg_added_sorted.bam \
+SO=coordinate \
+RGID=MARB689 RGLB=${SAMPLE} RGPL=ILLUMINA RGPU=unit1 RGPM=HISEQ RGSM=${SAMPLE}
+
+# index the resulting bam file
+java -Xmx16g \
+-jar $EBROOTPICARD/picard.jar BuildBamIndex \
+I=/scratch/user/mhood/Cx_Gendiversity/Picard_Output/${SAMPLE}_rg_added_sorted.bam
+
+# remove duplicates
+java -Xmx16g \
+-jar $EBROOTPICARD/picard.jar MarkDuplicates \
+TMP_DIR=/scratch/user/mhood/Cx_Gendiversity/ \
+I=/scratch/user/mhood/Cx_Gendiversity/Picard_Output/${SAMPLE}_rg_added_sorted.bam \
+O=/scratch/user/mhood/Cx_Gendiversity/Picard_Output/${SAMPLE}_dedup.bam \
+METRICS_FILE=/scratch/user/mhood/Cx_Gendiversity/Picard_Output/${SAMPLE}_dedup.metrics_test.txt \
+REMOVE_DUPLICATES=false \
+TAGGING_POLICY=All \
+CREATE_INDEX=true
+
+
+######################################################################################
+
+
+# NEW Picard Code (Split into 3 separate Loops)
+
+# Loop 1: Sorted Bam
+
+#!/bin/bash
+#SBATCH --time=48:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=16G   # memory per CPU core
+#SBATCH -J "pic_loop_1"   # job name
+#SBATCH --output "pic_loop_1"
+
+#load modules
+module load picard/2.25.1-Java-11
+
+# Define the directory containing BWA aligned SAM files
+input_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Looped_BWA"
+
+# Define the output directory for Sorted BAM Picard results
+output_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Looped_Picard"
+
+# Find all *_aligned.sam files in the input directory and loop through them
+find "$input_dir" -type f -name "*_aligned.sam" | while IFS= read -r sam_file; do
+  # Extract the base filename without the .fastq.gz extension
+  base_filename=$(basename "$sam_file" _aligned.sam)
+
+  # Define the output file for Picard
+  sorted_bam_file="$output_dir/${base_filename}_sorted.bam"
+
+  # Debug: Print the file path being processed
+  echo "Processing $sam_file"
+  echo "Output will be saved to $sorted_bam_file"
+
+  # Run Picard on the aligned sam file
+  java -Xmx16g \
+  -jar $EBROOTPICARD/picard.jar AddOrReplaceReadGroups \
+  I="$sam_file" \
+  O="$sorted_bam_file" \
+  SO=coordinate \
+  RGID=MARB689 RGLB=${base_filename} RGPL=ILLUMINA RGPU=unit1 RGPM=HISEQ RGSM=${base_filename}
+done
+
+
+
+# Loop 2: Indexing Sorted Bam Files
+
+#!/bin/bash
+#SBATCH --time=48:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=16G   # memory per CPU core
+#SBATCH -J "pic_loop_2"   # job name
+#SBATCH --output "pic_loop_2"
+
+#load modules
+module load picard/2.25.1-Java-11
+
+# Define the directory containing sorted BAM files
+input_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Looped_Picard"
+
+# Find all *_sorted.bam files in the input directory and loop through them
+find "$input_dir" -type f -name "*_sorted.bam" | while IFS= read -r sorted_bam_file; do
+  # Extract the base filename without the *_sorted.bam extension
+  base_filename=$(basename "$sorted_bam_file" _sorted.bam)
+
+  # Debug: Print the file path being processed
+  echo "Processing $sorted_bam_file"
+
+  # index the resulting bam file
+  java -Xmx16g \
+  -jar $EBROOTPICARD/picard.jar BuildBamIndex \
+  I="$sorted_bam_file" \
+done
+
+
+
+# Loop 3: Final Pcard Output
+
+#!/bin/bash
+#SBATCH --time=48:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=16G   # memory per CPU core
+#SBATCH -J "pic_loop_3"   # job name
+#SBATCH --output "pic_loop_3"
+
+#load modules
+module load picard/2.25.1-Java-11
+
+# Define the directory containing sorted and indexed BAM files
+input_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Looped_Picard"
+
+# Define the output directory for Final BAM Picard results
+output_dir="/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Looped_Picard"
+
+# Find all *_sorted.bam (and indexed) files in the input directory and loop through them
+find "$input_dir" -type f -name "*_sorted.bam" | while IFS= read -r sorted_bam_file; do
+  # Extract the base filename without the *_sorted.bam extension
+  base_filename=$(basename "$sorted_bam_file" _sorted.bam)
+
+  # Define the output file for Picard
+  dedup_bam_file="$output_dir/${base_filename}_dedup.bam"
+
+  # Debug: Print the file path being processed
+  echo "Processing $sorted_bam_file"
+  echo "Output will be saved to $dedup_bam_file"
+
+  # Run final Picard: remove duplicates
+  java -Xmx16g \
+  -jar $EBROOTPICARD/picard.jar MarkDuplicates \
+  TMP_DIR=/scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/ \
+  I="$sorted_bam_file" \
+  O="$dedup_bam_file" \
+  METRICS_FILE="$output_dir"/"${base_filename}"_dedup.metrics_test.txt \
+  REMOVE_DUPLICATES=false \
+  TAGGING_POLICY=All \
+  CREATE_INDEX=true
+done
+
+
+
+
+
+
 
