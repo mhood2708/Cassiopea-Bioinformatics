@@ -1,1 +1,19 @@
+# the curl tool was used alongside NCBI's "sra-explorer" program to take raw uploaded transcriptome 
+# sequences from the NCBI database (internet) onto the Grace HPRC server
 
+# First create and go to desired directory within the command line
+
+cd /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity
+
+mkdir Raw_Data
+
+cd Raw_data/
+
+# Second use the curl tool to transfer raw sequence from NCBI database 
+
+# Paired sequence example
+curl -L ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR222/003/ERR2228273/ERR2228273_1.fastq.gz -o ERR2228273_Illumina_HiSeq_2500_paired_end_sequencing_1.fastq.gz
+curl -L ftp://ftp.sra.ebi.ac.uk/vol1/fastq/ERR222/003/ERR2228273/ERR2228273_2.fastq.gz -o ERR2228273_Illumina_HiSeq_2500_paired_end_sequencing_2.fastq.gz
+
+# This website can be used to assist in curl command creation if you know your sample's accession number 
+# https://sra-explorer.info/
