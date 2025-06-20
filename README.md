@@ -1,2 +1,3 @@
-# Cassiopea-Bioinformatics
-Cassiopea Bioinformatic Pipeline for Available Strains
+# Cassiopea-Strain-Variance-Analysis
+
+# Cassiopea Bioinformatic Pipeline for Available Strains
