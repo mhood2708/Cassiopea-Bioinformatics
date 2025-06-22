@@ -1,5 +1,5 @@
-# the curl tool was used alongside NCBI's "sra-explorer" program to take raw uploaded transcriptome 
-# sequences from the NCBI database (internet) onto the Grace HPRC server
+# The curl tool was used alongside NCBI's "sra-explorer" program to upload raw transcriptome sequences 
+# from the NCBI database (internet) onto the Grace HPRC server
 
 # First create and go to desired directory within the command line
 
