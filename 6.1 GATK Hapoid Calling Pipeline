@@ -1,1 +1,98 @@
+# the gatk tool was used to determine genetic variations between samples and a known reference genome
+
+
+
+# first the code must index and identify a reference genome
+
+#!/bin/bash
+#SBATCH --time=24:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=24G   # memory per CPU core
+#SBATCH -J "hc_index"   # job name
+#SBATCH --output "hc_index"
+
+# load correct module
+module load GCC/12.2.0
+module load SAMtools/1.17
+module load picard/2.25.1-Java-11
+
+# Index the genome
+samtools faidx /scratch/user/mhood/Cx_Gendiversity/Cx_RefGenome/Casxa1_AssemblyScaffolds_Repeatmasked.fasta
+
+# Genome dictionary
+java -Xmx16g -jar $EBROOTPICARD/picard.jar CreateSequenceDictionary \
+R=/scratch/user/mhood/Cx_Gendiversity/Cx_RefGenome/Casxa1_AssemblyScaffolds_Repeatmasked.fasta \
+O=/scratch/user/mhood/Cx_Gendiversity/Cx_RefGenome/Casxa1_AssemblyScaffolds_Repeatmasked.dict
+
+
+
+
+
+# Next a looped code was created to determine the variancne in each sample against the reference genome
+
+# This code used a list formate
+
+#!/bin/bash
+#SBATCH --time=96:00:00   # walltime
+#SBATCH --ntasks=8   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=48G   # memory per CPU core
+#SBATCH -J "loop_hc" # job name
+#SBATCH --output "loop_hc"
+
+#load modules
+module load GCCcore/11.2.0
+module load GATK/4.2.6.1-Java-11
+
+# Change me!
+
+while read -r SAMPLE; do
+        gatk SplitNCigarReads \
+        -R /scratch/user/mhood/Cx_Gendiversity/Cx_RefGenome/Casxa1_AssemblyScaffolds_Repeatmasked.fasta  \
+        -I /scratch/user/mhood/Cx_Gendiversity/Picard_Output/${SAMPLE}_dedup.bam \
+        -O /scratch/user/mhood/Cx_Gendiversity/Hap_Output/${SAMPLE}_dedup_MQ_split.bam
+done < list
+
+#variant calling for each sample
+while read -r SAMPLE; do
+        gatk HaplotypeCaller \
+        --java-options "-Xmx48g -XX:ParallelGCThreads=8" \
+        --dont-use-soft-clipped-bases true -stand-call-conf 20.0 \
+        -R /scratch/user/mhood/Cx_Gendiversity/Cx_RefGenome/Casxa1_AssemblyScaffolds_Repeatmasked.fasta \
+        -I /scratch/user/mhood/Cx_Gendiversity/Hap_Output/${SAMPLE}_dedup_MQ_split.bam \
+        -O /scratch/user/mhood/Cx_Gendiversity/Hap_Output/${SAMPLE}_new.raw.g.vcf \
+        -ERC GVCF
+done < list
+
+
+
+
+### While this code used a more manual sample by sample approach
+
+#!/bin/bash
+#SBATCH --time=36:00:00   # walltime
+#SBATCH --ntasks=8   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=48G   # memory per CPU core
+#SBATCH -J "hc_{X}"   # job name
+#SBATCH --output "hc_{X}
+
+# load correct module
+module load GCCcore/11.2.0
+module load GATK/4.2.6.1-Java-11
+
+# change me!
+SAMPLE={X}
+
+# variant calling
+gatk HaplotypeCaller \
+--java-options "-Xmx32g -XX:ParallelGCThreads=8" \
+--min-pruning 1 \
+--min-dangling-branch-length 1 \
+-R /scratch/user/mhood/Cx_Gendiversity/Cx_RefGenome/Casxa1_AssemblyScaffolds_Repeatmasked.fasta \
+-I /scratch/user/mhood/Cx_Gendiversity/Picard_Output/${SAMPLE}_dedup.bam \
+-O /scratch/user/mhood/Cx_Gendiversity/Hap_Output/${SAMPLE}.raw.g.vcf \
+-ERC GVCF
+
 
