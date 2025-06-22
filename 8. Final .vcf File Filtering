@@ -1,0 +1,14 @@
+# This code was used to provide further filtering for the sample SNPs identified in the previous step
+
+# filter for biallelic sites
+bcftools view -O v --threads 2 -m2 -M2 -v snps -o biallelic_snp_${REFERENCE}.vcf ${DIR}/${USER}/${DIR2}/final_${REFERENCE}_SNPs.vcf
+
+# quality filter SNPs
+bcftools filter -i 'MQ > 30 & INFO/DP < 1200 & QD > 2.0 & FS < 60.0 & MQRankSum > -12.5 & ReadPosRankSum > -8.0 & ReadPosRankSum < 10.0 & SOR < 3.0' \
+--threads 2 -O v -o hqfilter_snp_${REFERENCE}.vcf biallelic_snp_${REFERENCE}.vcf
+
+# additional filtering
+vcftools --vcf hqfilter_snp_${REFERENCE}.vcf --max-missing 0.8 --minDP 6 --maf 0.05 --recode --out hqfilter_rd2_snp_${REFERENCE}
+
+# stats on filtered file
+bcftools stats hqfilter_rd2_snp_${REFERENCE}.recode.vcf > hqfilter_${REFERENCE}_SNPs.stats
