@@ -1,5 +1,7 @@
+# The Fastqc Tool was used to analyize and assess the quality of the (HTS) RNA-seq samples.
 
 # This was the orininal code
+
 #!/bin/bash
 #SBATCH --time=01:00:00   # walltime
 #SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
