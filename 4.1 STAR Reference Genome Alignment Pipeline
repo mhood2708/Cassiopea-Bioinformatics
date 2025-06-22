@@ -1,3 +1,5 @@
+# The Tool STAR was used to align the RNA-seq samples to a reference Cassiopea xamachana genome 
+
 # !/bin/bash
 # SBATCH --time=24:00:00   # walltime
 # SBATCH --ntasks=8   # number of processor cores (i.e. tasks)
