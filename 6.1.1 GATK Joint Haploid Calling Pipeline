@@ -1,0 +1,32 @@
+# The GATK joint haploid calling tool not only determines variants within a sample
+# when compared to a reference genome but determines variations between samples as well.
+
+
+#!/bin/bash
+#SBATCH --time=120:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=100G   # memory per CPU core
+#SBATCH -J "jg_split"   # job name
+#SBATCH --output "jg_split"
+
+#load modules
+module load GCCcore/11.2.0
+module load GATK/4.2.6.1-Java-11
+
+gatk --java-options "-Xmx100g" GenomicsDBImport \
+-V gvcfs.list \
+--merge-contigs-into-num-partitions 50 \
+--merge-input-intervals true \
+--genomicsdb-workspace-path my_database \
+-L interval.list
+
+# joint genotyping
+gatk GenotypeGVCFs \
+--java-options "-Xmx100g -XX:ParallelGCThreads=4" \
+-R /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/RefGenome/Casxa1_AssemblyScaffolds_Repeatmasked.fasta \
+--heterozygosity 0.015 \
+--indel-heterozygosity 0.01 \
+-V gendb://my_database \
+-O /scratch/group/kitchen-group/lab/michael/Cx_Gendiversity/Hap_Output/final_Hap.vcf
+
