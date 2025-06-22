@@ -1,3 +1,5 @@
+# The CutAdapt Tool was used to remove Adapter, Primer, and other unwanted sequences from the (HTS) RNA-seq samples. 
+
 #OLD Code for SINGLE Sequence Samples
 
 #!/bin/bash
