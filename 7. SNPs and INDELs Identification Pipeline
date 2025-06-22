@@ -1,0 +1,20 @@
+# This code was used to identify the SNPs found within the samples 
+
+gatk SelectVariants \
+--java-options "-Xmx16g -XX:ParallelGCThreads=4" \
+-R /scratch/group/kitchen-group/MARB_689_Molecular_Ecology/map_reference/${REFERENCE}/${REFERENCE}_genome.fa \
+-V ${DIR}/${USER}/${DIR2}/final_${REFERENCE}.vcf \
+-select-type SNP \
+-O ${DIR}/${USER}/${DIR2}/final_${REFERENCE}_SNPs.vcf
+
+
+
+# This code was used to identify the INDELs found within the samples
+
+gatk SelectVariants \
+--java-options "-Xmx16g -XX:ParallelGCThreads=4" \
+-R /scratch/group/kitchen-group/MARB_689_Molecular_Ecology/map_reference/${REFERENCE}/${REFERENCE}_genome.fa \
+-V ${DIR}/${USER}/${DIR2}/final_${REFERENCE}.vcf \
+-select-type INDEL \
+-O ${DIR}/${USER}/${DIR2}/final_${REFERENCE}_INDELs.vcf
+
