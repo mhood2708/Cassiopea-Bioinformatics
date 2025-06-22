@@ -1,5 +1,32 @@
 # The Tool STAR was used to align the RNA-seq samples to a reference Cassiopea xamachana genome 
 
+
+# first index the desired reference genome. In this case our known Cassiopea Genome
+
+#!/bin/bash
+#SBATCH --time=24:00:00   # walltime
+#SBATCH --ntasks=4   # number of processor cores (i.e. tasks)
+#SBATCH --nodes=1   # number of nodes
+#SBATCH --mem=20G   # memory per CPU core
+#SBATCH -J "index"   # job name
+#SBATCH --output "index"
+
+#Upload Module
+module load GCC/11.2.0
+module load STAR/2.7.9a
+
+# run star Ref Index
+STAR --runThreadN 4 \
+--runMode genomeGenerate \
+--genomeDir /scratch/user/mhood/Cx_Gendiversity/Cx_RefGenome \
+--genomeFastaFiles /scratch/user/mhood/Cx_Gendiversity/Cx_RefGenome/Casxa1_AssemblyScaffolds_Repeatmasked.fasta \
+--sjdbGTFfile /scratch/user/mhood/Cx_Gendiversity/Cx_RefGenome/Casxa1_GeneCatalog_20200306.gft \
+--genomeSAindexNbases 13
+
+
+
+# Then align each of the samples to the newly indexed reference genome
+
 # !/bin/bash
 # SBATCH --time=24:00:00   # walltime
 # SBATCH --ntasks=8   # number of processor cores (i.e. tasks)
