@@ -1,3 +1,5 @@
+# The Picard Tool was used to simplify and standardize all (HTS) RNA-seq samples. 
+
 # OLD Picard Code
 
 #!/bin/bash
