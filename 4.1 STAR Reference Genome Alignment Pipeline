@@ -1,1 +1,27 @@
+# !/bin/bash
+# SBATCH --time=24:00:00   # walltime
+# SBATCH --ntasks=8   # number of processor cores (i.e. tasks)
+# SBATCH --nodes=1   # number of nodes
+# SBATCH --mem=32G   # memory per CPU core
+# SBATCH -J "star_log"   # job name
+# SBATCH --output "star_log"
 
+# Upload Module
+module load GCC/11.2.0
+module load STAR/2.7.9a
+module load SAMtools/1.14
+
+# change me!
+SAMPLE= (Sample Full Name)
+X= (Sample)
+cd /scratch/user/mhood/Cx_Gendiversity/Star_Output
+
+# align reads
+STAR --genomeDir /scratch/user/mhood/Cx_Gendiversity/Cx_RefGenome \
+--runThreadN 4 \
+--readFilesIn /scratch/user/mhood/Cx_Gendiversity/filtered_reads/${SAMPLE} \
+--outFileNamePrefix ${X} \
+--twopassMode Basic
+
+# how good was the mapping
+# samtools flagstat /scratch/user/mhood/Cx_Gendiversity/{X}_Aligned.out.sam
